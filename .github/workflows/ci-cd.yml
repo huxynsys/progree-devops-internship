@@ -11,83 +11,80 @@ on:
       - main
       - master
 
-
 jobs:
   ci:
     name: Continuous Integration
     runs-on: ubuntu-latest
 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
 
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
 
-- name: Setup Node.js
-  uses: actions/setup-node@v4
-  with:
-    node-version: 22
-    cache: npm
-    cache-dependency-path: backend/package-lock.json
+      - name: Lint backend
+        working-directory: ./backend
+        run: npm run lint
 
+      - name: Test backend
+        working-directory: ./backend
+        run: npm test
 
-- name: Install backend dependencies
-  working-directory: ./backend
-  run: npm ci
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
 
+      - name: Lint frontend
+        working-directory: ./frontend
+        run: npm run lint
 
- - name: Lint backend
-  working-directory: ./backend
-  run: npm run lint
+      - name: Test frontend
+        working-directory: ./frontend
+        run: npm test
 
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
 
-- name: Run backend tests
-  working-directory: ./backend
-  run: npm test
+      - name: Build backend Docker image
+        run: docker build -t progree-backend:ci ./backend
 
+      - name: Build frontend Docker image
+        run: docker build -t progree-frontend:ci ./frontend
 
-- name: Setup Node.js for frontend
-  uses: actions/setup-node@v4
-  with:
-    node-version: 22
-    cache: npm
-    cache-dependency-path: frontend/package-lock.json
+      - name: Validate Docker Compose
+        env:
+          FRONTEND_PORT: 8080
+          BACKEND_PORT: 3000
+          NODE_ENV: test
+          DATABASE_URL: postgresql://ci_user:ci_password@postgres:5432/ci_db
+          REDIS_URL: redis://redis:6379
+          POSTGRES_DB: ci_db
+          POSTGRES_USER: ci_user
+          POSTGRES_PASSWORD: ci_password
+        run: docker compose config
 
+      - name: Display Docker images
+        run: docker images
 
-- name: Install frontend dependencies
-  working-directory: ./frontend
-  run: npm ci
-
-
-- name: Lint frontend
-  working-directory: ./frontend
-  run: npm run lint
-
-
- - name: Run frontend tests
-  working-directory: ./frontend
-  run: npm test
-
-
-- name: Build frontend
-  working-directory: ./frontend
-  run: npm run build
-
-
- - name: Build backend Docker image
-  run: docker build -t progree-backend:ci ./backend
-
-
- - name: Build frontend Docker image
-  run: docker build -t progree-frontend:ci ./frontend
-
-
-- name: Validate Docker Compose
-  run: docker compose config
-
-
-- name: Display Docker images
-  run: docker images
-
-  
-        
+      - name: Generate CI summary
+        if: always()
+        run: |
+          echo "## Progree DevOps CI/CD Pipeline" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Overall status:** ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Stage | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Continuous Integration | ${{ job.status }} |" >> "$GITHUB_STEP_SUMMARY"
