@@ -35,3 +35,11 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+
+
+task4/kubernetes/database/secret.yaml
+task4/terraform/.terraform/
+task4/terraform/*.tfstate
+task4/terraform/*.tfstate.*
+task4/terraform/*.tfplan
