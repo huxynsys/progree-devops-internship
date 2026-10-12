@@ -25,8 +25,23 @@ spec:
               value: "3000"
             - name: NODE_ENV
               value: production
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_PASSWORD
             - name: DATABASE_URL
-              value: "postgresql://progree_user:replace-with-a-unique-local-password@postgres:5432/progree"
+              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:5432/$(POSTGRES_DB)"
             - name: REDIS_URL
               value: "redis://redis:6379"
           resources:
