@@ -1,4 +1,4 @@
-variable "aws_region" {
+﻿variable "aws_region" {
   description = "AWS region for the Task 4 network"
   type        = string
   default     = "us-east-1"
