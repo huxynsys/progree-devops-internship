@@ -2,7 +2,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./task2/frontend
       dockerfile: Dockerfile
 
     container_name: progree-frontend
@@ -18,7 +18,7 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ./task2/backend
       dockerfile: Dockerfile
 
     container_name: progree-backend
